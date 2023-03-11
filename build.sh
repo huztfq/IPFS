@@ -7,19 +7,14 @@ cd go-ipfs
 sudo ./install.sh
 
 # Initialize IPFS node
-ipfs init
+ipfs init --profile server
 
-# Configure IPFS node
-echo '{"API": {"HTTPHeaders": {"Access-Control-Allow-Origin": ["*"]}}, "Swarm": {"AddrFilters": null, "DisableBandwidthMetrics": false, "DisableNatPortMap": false, "DisableRelay": false, "EnableAutoRelay": false, "EnableAutoNATService": false, "EnableRelayHop": false, "Transports": {"Multiplexers": {}, "Network": {}}, "ConnMgr": {"Type": "basic", "LowWater": 50, "HighWater": 100}}, "Addresses": {"Swarm": ["/ip4/0.0.0.0/tcp/4001", "/ip4/127.0.0.1/tcp/4001", "/ip6/::1/tcp/4001"], "API": "/ip4/127.0.0.1/tcp/5001", "Gateway": "/ip4/0.0.0.0/tcp/8080", "Delegates": []}}' > ~/.ipfs/config
-
-# Run IPFS repository migrations
-echo "Running IPFS repository migrations..."
-wget https://dist.ipfs.io/fs-repo-migrations/v1.1.1/fs-repo-migrations_v1.1.1_linux-amd64.tar.gz
-tar xvfz fs-repo-migrations_v1.1.1_linux-amd64.tar.gz
-./fs-repo-migrations/fs-repo-migrations migrate --all
-
-# Start IPFS daemon
-ipfs daemon --init &
+# Check if fs-repo needs to be migrated
+if [ -e ~/.ipfs/api ]; then
+    ipfs daemon --migrate &
+else
+    ipfs daemon &
+fi
 
 # Wait for IPFS daemon to start
 sleep 5
@@ -28,9 +23,9 @@ sleep 5
 echo "Hello World!" > hello.txt
 ipfs add hello.txt
 
+# Set public gateway address
+ipfs config --json Addresses.Gateway '"/ip4/0.0.0.0/tcp/8080"'
+ipfs config --json Addresses.API '"/ip4/0.0.0.0/tcp/5001"'
+
 # Connect to other IPFS nodes
 ipfs swarm connect /dnsaddr/bootstrap.libp2p.io/ipfs/QmNnooDu7bfBzgo5b7y1LhRfg58ncK1zZquwbALqKGGg3y
-ipfs swarm connect /ip4/54.172.108.174/tcp/4001/ipfs/QmZ4xoY5EtPvS8S2Qz7FucA4d5pX4Bm1PPBCbLE6gfv1jf
-
-# Print the address of this node
-echo "IPFS node address: /ip4/54.172.108.174/tcp/4001/p2p/$(ipfs config Identity.PeerID)"
