@@ -1,24 +1,30 @@
 #!/bin/bash
 
-sudo apt install docker.io
-sudo apt install docker-compose
-# download the latest version of IPFS
-wget https://dist.ipfs.io/go-ipfs/v0.7.0/go-ipfs_v0.7.0_linux-amd64.tar.gz
+# Install IPFS software
+wget https://dist.ipfs.io/go-ipfs/v0.9.1/go-ipfs_v0.9.1_linux-amd64.tar.gz
+tar -xvf go-ipfs_v0.9.1_linux-amd64.tar.gz
+cd go-ipfs
+sudo ./install.sh
 
-# extract the downloaded archive
-tar xvfz go-ipfs_v0.7.0_linux-amd64.tar.gz
-
-# move the extracted files to a directory in PATH
-sudo mv go-ipfs/ipfs /usr/local/bin/
-
-# create a new IPFS repo
+# Initialize IPFS node
 ipfs init
 
-# configure the IPFS daemon to run in "offline" mode
-echo "--offline" > ~/.ipfs/config
+# Configure IPFS node
+echo '{"API": {"HTTPHeaders": {"Access-Control-Allow-Origin": ["*"]}}, "Swarm": {"AddrFilters": null, "DisableBandwidthMetrics": false, "DisableNatPortMap": false, "DisableRelay": false, "EnableAutoRelay": false, "EnableAutoNATService": false, "EnableRelayHop": false, "Transports": {"Multiplexers": {}, "Network": {}}, "ConnMgr": {"Type": "basic", "LowWater": 50, "HighWater": 100}}, "Addresses": {"Swarm": ["/ip4/0.0.0.0/tcp/4001", "/ip4/127.0.0.1/tcp/4001", "/ip6/::1/tcp/4001"], "API": "/ip4/127.0.0.1/tcp/5001", "Gateway": "/ip4/0.0.0.0/tcp/8080", "Delegates": []}}' > ~/.ipfs/config
 
-# start the IPFS daemon
-ipfs daemon &
+# Start IPFS daemon
+ipfs daemon --init &
 
-# create a new IPFS node
-ipfs bootstrap add /ip4/127.0.0.1/tcp/4001/ipfs/QmQ2r6iMNpky5f1m4cnm3Yqw8VSuUZ8DtQxnkZSJUcq6wR
+# Wait for IPFS daemon to start
+sleep 5
+
+# Share content
+echo "Hello World!" > hello.txt
+ipfs add hello.txt
+
+# Connect to other IPFS nodes
+ipfs swarm connect /dnsaddr/bootstrap.libp2p.io/ipfs/QmNnooDu7bfBzgo5b7y1LhRfg58ncK1zZquwbALqKGGg3y
+ipfs swarm connect /ip4/54.172.108.174/tcp/4001/ipfs/QmZ4xoY5EtPvS8S2Qz7FucA4d5pX4Bm1PPBCbLE6gfv1jf
+
+# Print the address of this node
+echo "IPFS node address: /ip4/54.172.108.174/tcp/4001/p2p/$(ipfs config Identity.PeerID)"
