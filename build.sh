@@ -12,6 +12,12 @@ ipfs init
 # Configure IPFS node
 echo '{"API": {"HTTPHeaders": {"Access-Control-Allow-Origin": ["*"]}}, "Swarm": {"AddrFilters": null, "DisableBandwidthMetrics": false, "DisableNatPortMap": false, "DisableRelay": false, "EnableAutoRelay": false, "EnableAutoNATService": false, "EnableRelayHop": false, "Transports": {"Multiplexers": {}, "Network": {}}, "ConnMgr": {"Type": "basic", "LowWater": 50, "HighWater": 100}}, "Addresses": {"Swarm": ["/ip4/0.0.0.0/tcp/4001", "/ip4/127.0.0.1/tcp/4001", "/ip6/::1/tcp/4001"], "API": "/ip4/127.0.0.1/tcp/5001", "Gateway": "/ip4/0.0.0.0/tcp/8080", "Delegates": []}}' > ~/.ipfs/config
 
+# Run IPFS repository migrations
+echo "Running IPFS repository migrations..."
+wget https://dist.ipfs.io/fs-repo-migrations/v1.1.1/fs-repo-migrations_v1.1.1_linux-amd64.tar.gz
+tar xvfz fs-repo-migrations_v1.1.1_linux-amd64.tar.gz
+./fs-repo-migrations/fs-repo-migrations migrate --all
+
 # Start IPFS daemon
 ipfs daemon --init &
 
